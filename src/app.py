@@ -4,7 +4,7 @@ import plotly.express as px
 import folium
 import streamlit_folium as st_folium
 
-# --- Load data (widgets OUTSIDE the cached function) ---
+# --- Load data ---
 @st.cache_data
 def parse_data(uploaded_file):
     df = pd.read_csv(uploaded_file)
@@ -18,9 +18,7 @@ except Exception:
     uploaded = st.sidebar.file_uploader("Upload inspections.csv", type="csv")
     if uploaded is None:
         st.stop()
-    df = parse_data(uploaded)   
-
-df = load_data()
+    df = parse_data(uploaded)
 
 # --- Sidebar filters ---
 st.sidebar.title("🍽️ NYC Restaurant Health Dashboard")
@@ -65,8 +63,6 @@ tab1, tab2, tab3 = st.tabs(["Score Trends", "Map", "At-Risk List"])
 # --- Tab 1: Score trends ---
 with tab1:
     st.subheader("Monthly Average Score by Borough")
-
-    # FIX: clip to 2000+ so the chart isn't stretched by sparse old data
     trend = filtered[filtered["INSPECTION DATE"] >= "2000-01-01"].copy()
     monthly = (
         trend.groupby([pd.Grouper(key="INSPECTION DATE", freq="M"), "BORO"])["SCORE"]
@@ -74,14 +70,11 @@ with tab1:
         .reset_index()
     )
     fig = px.line(
-        monthly,
-        x="INSPECTION DATE",
-        y="SCORE",
-        color="BORO",
+        monthly, x="INSPECTION DATE", y="SCORE", color="BORO",
         title="Average Inspection Score Over Time (2000–present)",
         labels={"INSPECTION DATE": "", "SCORE": "Avg Score", "BORO": "Borough"},
     )
-    fig.update_layout(yaxis_range=[0, 100])  # lock y-axis so jumps are visible
+    fig.update_layout(yaxis_range=[0, 100])
     st.plotly_chart(fig, use_container_width=True)
 
     st.subheader("Score Distribution")
@@ -102,11 +95,8 @@ with tab2:
         for _, row in failing.sample(min(len(failing), 500)).iterrows():
             folium.CircleMarker(
                 location=[row["Latitude"], row["Longitude"]],
-                radius=4,
-                color="red",
-                fill=True,
-                fill_opacity=0.6,
-                popup=f"{row['DBA']} (Score: {row['SCORE']})"
+                radius=4, color="red", fill=True, fill_opacity=0.6,
+                popup=f"{row['DBA']} (Score: {row['SCORE']})",
             ).add_to(m)
         st_folium.folium_static(m, width=700, height=500)
         st.caption(f"Showing {min(len(failing), 500)} of {len(failing):,} failing restaurants")
@@ -118,8 +108,8 @@ with tab3:
     st.subheader("Restaurants with Declining Scores")
     recent = filtered.sort_values("INSPECTION DATE").groupby("CAMIS").tail(3)
     declining = recent.groupby("CAMIS")["SCORE"].apply(
-         lambda s: (s.iloc[-1] < s.iloc[0]) if len(s) == 3 and s.notna().all() else False
-    )   
+        lambda s: (s.iloc[-1] < s.iloc[0]) if len(s) == 3 and s.notna().all() else False
+    )
     at_risk = declining[declining].index
     at_risk_df = filtered[filtered["CAMIS"].isin(at_risk)].sort_values("SCORE").head(100)
     display_cols = ["DBA", "BORO", "CUISINE DESCRIPTION", "SCORE", "GRADE", "INSPECTION DATE"]
@@ -128,5 +118,5 @@ with tab3:
         "⬇️ Download as CSV",
         at_risk_df[display_cols].to_csv(index=False).encode(),
         file_name="at_risk_restaurants.csv",
-        mime="text/csv"
+        mime="text/csv",
     )   
