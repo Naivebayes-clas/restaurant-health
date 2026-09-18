@@ -6,7 +6,10 @@
 
 ## Live Demo
 
-[Coming soon — deploy on Streamlit Community Cloud]
+> [https://restaurant-health-5fkdrlabreerjmpzyegtsp.streamlit.app](https://restaurant-health-5fkdrlabreerjmpzyegtsp.streamlit.app)
+
+> Upload the [NYC Restaurant Inspection CSV](https://data.cityofnewyork.us/Health/DOHMH-New-York-City-Restaurant-Inspection-Results/43nn-pn8j) to get started.
+
 
 ## Screenshots
 
