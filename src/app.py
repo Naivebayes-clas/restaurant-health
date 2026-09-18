@@ -4,19 +4,21 @@ import plotly.express as px
 import folium
 import streamlit_folium as st_folium
 
-# --- Load data ---
+# --- Load data (widgets OUTSIDE the cached function) ---
 @st.cache_data
-def load_data():
-    try:
-        df = pd.read_csv("data/inspections.csv")
-    except FileNotFoundError:
-        st.sidebar.info("📁 Upload the inspections CSV to get started")
-        uploaded = st.sidebar.file_uploader("Upload inspections.csv", type="csv")
-        if uploaded is None:
-            st.stop()
-        df = pd.read_csv(uploaded)
+def parse_data(uploaded_file):
+    df = pd.read_csv(uploaded_file)
     df["INSPECTION DATE"] = pd.to_datetime(df["INSPECTION DATE"])
-    return df   
+    return df
+
+try:
+    df = parse_data("data/inspections.csv")
+except Exception:
+    st.sidebar.info("Upload the inspections CSV to get started")
+    uploaded = st.sidebar.file_uploader("Upload inspections.csv", type="csv")
+    if uploaded is None:
+        st.stop()
+    df = parse_data(uploaded)   
 
 df = load_data()
 
