@@ -65,7 +65,7 @@ with tab1:
     st.subheader("Monthly Average Score by Borough")
     trend = filtered[filtered["INSPECTION DATE"] >= "2000-01-01"].copy()
     monthly = (
-        trend.groupby([pd.Grouper(key="INSPECTION DATE", freq="M"), "BORO"])["SCORE"]
+        trend.groupby([pd.Grouper(key="INSPECTION DATE", freq="ME"), "BORO"])["SCORE"]
         .mean()
         .reset_index()
     )
