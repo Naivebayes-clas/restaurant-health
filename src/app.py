@@ -7,9 +7,16 @@ import streamlit_folium as st_folium
 # --- Load data ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv("data/inspections.csv")
+    try:
+        df = pd.read_csv("data/inspections.csv")
+    except FileNotFoundError:
+        st.sidebar.info("📁 Upload the inspections CSV to get started")
+        uploaded = st.sidebar.file_uploader("Upload inspections.csv", type="csv")
+        if uploaded is None:
+            st.stop()
+        df = pd.read_csv(uploaded)
     df["INSPECTION DATE"] = pd.to_datetime(df["INSPECTION DATE"])
-    return df
+    return df   
 
 df = load_data()
 
